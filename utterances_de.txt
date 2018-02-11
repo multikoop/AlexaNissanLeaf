@@ -1,0 +1,41 @@
+PreheatIntent die Heizung anzumachen
+PreheatIntent die Heizung anzuschalten
+PreheatIntent Heizung an
+PreheatIntent aufzuwärmen
+PreheatIntent aufzuheizen
+PreheatIntent sich aufzuwärmen
+PreheatIntent es ist kalt
+CoolingIntent cool down
+CoolingIntent die Klima an
+CoolingIntent die Klima anzumachen
+CoolingIntent die Klimaanlage anzumachen
+CoolingIntent abzukühlen
+CoolingIntent sich abzukühlen
+ClimateControlOffIntent die Klima auszumachen
+ClimateControlOffIntent die Klima auszuschalten
+ClimateControlOffIntent Klima aus
+ClimateControlOffIntent die Klimaanlage aus
+ClimateControlOffIntent die Klimaanlage aus
+ClimateControlOffIntent die Klimaanlage auszuschalten
+UpdateIntent den Status zu aktualisieren
+UpdateIntent den Batteriestatus zu aktualisieren
+UpdateIntent den Akkustatus zu aktualisieren
+UpdateIntent nach einem Update
+UpdateIntent ein Update durchzuführen
+UpdateIntent nach Update
+RangeIntent Distanz
+RangeIntent wie weit komme ich
+ChargeIntent nach dem Batteriestand
+ChargeIntent Batteriestand
+ChargeIntent Batterie
+ChargeIntent Batterie Status
+ChargeIntent nach dem Akkustand
+ChargeIntent Akku Status
+ChargingIntent ob er auflädt
+ChargingIntent nach dem Ladestatus
+ChargingIntent ob er lädt
+ConnectedIntent connected
+ConnectedIntent angeschlossen
+ConnectedIntent plugged in
+StartChargingIntent den Ladevorgang zu starten
+StartChargingIntent zu laden
