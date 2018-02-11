@@ -1,6 +1,7 @@
 "use strict";
 
 let https = require("https");
+let querystring = require('querystring');
 
 // Require encryption.js to encrypt the password.
 var Encryption = require('./encryption.js');
@@ -9,10 +10,14 @@ var Encryption = require('./encryption.js');
 let initial_app_strings = "geORNtsZe5I4lRGjG9GZiA";
 // Possible value are NE (Europe), NNA (North America) and NCI (Canada).
 let region_code = process.env.regioncode;
-// You should store your username and password as environment variables. 
+// You should store your username and password as environment variables.
 // If you don't you can hard code them in the following variables.
 let username = process.env.username; // Your NissanConnect username or email address.
-let password = encrypt(process.env.password); // Your NissanConnect account password.
+let password = querystring.escape( encrypt(process.env.password) ); // Your NissanConnect account password.
+
+// in testmode no requests will really be processed but will be treated as successfull request.
+const testmode = (process.env.testmode == "true");
+const debug = (process.env.debug == "true");
 
 let sessionid, vin, loginFailureCallback;
 
@@ -24,17 +29,27 @@ let sessionid, vin, loginFailureCallback;
 * successCallback
 * failureCallback
 **/
-function sendRequest(action, requestData, successCallback, failureCallback) {	
+function sendRequest(action, requestData, successCallback, failureCallback) {
 	const options = {
 		hostname: "gdcportalgw.its-mo.com",
 		port: 443,
-		path: "/gworchest_160803EC/gdc/" + action,
+		path: "/gworchest_160803A/gdc/" + action,
 		method: "POST",
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded",
 			"Content-Length": Buffer.byteLength(requestData),
 		}
 	};
+
+	if(testmode && action != "UserLoginRequest.php" ){
+		console.log("devmode: Not sending request " + options.hostname + options.path + "?" +requestData);
+		successCallback(null);
+		return;
+	}
+
+
+	console.log( "Sending request to " + options.hostname + options.path +(debug?("?"+requestData):""));
+
 
 	const req = https.request(options, resp => {
 		if (resp.statusCode < 200 || resp.statusCode > 300) {
@@ -52,30 +67,35 @@ function sendRequest(action, requestData, successCallback, failureCallback) {
 		});
 		resp.on("end", () => {
 			let json = respData && respData.length ? JSON.parse(respData) : null;
+			if(debug){
+				console.log("Response: " + respData);
+			}
+
 			if (json.status == 200) {
 				successCallback(respData && respData.length ? JSON.parse(respData) : null);
-			}else {
-				console.log(json);
 			}
 		});
 	});
-	
+
 	req.write(requestData);
 	req.end();
 }
 
 /**
 * Log the current user in to retrieve a valid session token.
-* 
+*
 * successCallback
 **/
 function login(successCallback) {
-	sendRequest("UserLoginRequest.php", 
+	sendRequest("UserLoginRequest.php",
 	"UserId=" + username +
 	"&initial_app_strings=" + initial_app_strings +
 	"&RegionCode=" + region_code +
 	"&Password=" + password,
 	loginResponse => {
+		if(debug){
+			console.log("Logged In ");
+		}
 		// Get the session id and VIN for future API calls.
 		// Sometimes the results from the API include a VehicleInfoList array, sometimes they omit it!
 		if (loginResponse.VehicleInfoList) {
@@ -83,10 +103,10 @@ function login(successCallback) {
 			vin = encodeURIComponent(loginResponse.VehicleInfoList.vehicleInfo[0].vin);
 		} else  {
 			sessionid = encodeURIComponent(loginResponse.vehicleInfo[0].custom_sessionid);
-			vin = encodeURIComponent(loginResponse.vehicleInfo[0].vin);			
+			vin = encodeURIComponent(loginResponse.vehicleInfo[0].vin);
 		}
 		successCallback();
-	}, 
+	},
 	loginFailureCallback);
 }
 
@@ -94,6 +114,7 @@ function login(successCallback) {
 * Get the battery information from the API.
 **/
 exports.getBatteryStatus = (successCallback, failureCallback) => {
+
 	login(() => sendRequest("BatteryStatusRecordsRequest.php",
 	"custom_sessionid=" + sessionid +
 	"&RegionCode=" + region_code +

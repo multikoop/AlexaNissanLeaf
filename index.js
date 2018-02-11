@@ -20,18 +20,17 @@ function buildResponse(output, card, shouldEndSession) {
 
 // Helper to build the text response for range/battery status.
 function buildBatteryStatus(battery) {
-	console.log(battery);
-	const milesPerMeter = 0.000621371;
-	let response = `You have ${Math.floor((battery.BatteryStatusRecords.BatteryStatus.BatteryRemainingAmount / battery.BatteryStatusRecords.BatteryStatus.BatteryCapacity) * 100)}% battery which will get you approximately ${Math.floor(battery.BatteryStatusRecords.CruisingRangeAcOn * milesPerMeter)} miles. `;
+
+	let response = `Du hast noch ${Math.floor((battery.BatteryStatusRecords.BatteryStatus.BatteryRemainingAmount / battery.BatteryStatusRecords.BatteryStatus.BatteryCapacity) * 100)}% Batterieladung. Damit kommst Du ungefähr ${Math.floor(battery.BatteryStatusRecords.CruisingRangeAcOn/1000)} Kilometer weit. `;
 
 	if (battery.BatteryStatusRecords.PluginState == "CONNECTED") {
-		response += "The car is plugged in";
+		response += "Das Auto ist an einer Ladestation angeschlossen";
 	} else {
-		response += "The car is not plugged in";
+		response += "Das Auto ist aktuell an keiner Ladestation angeschlossen";
 	}
 
 	if (battery.BatteryStatusRecords.BatteryStatus.BatteryChargingStatus != "NOT_CHARGING") {
-		response += " and charging";
+		response += " und lädt";
 	}
 
 	return response + ".";
@@ -45,7 +44,7 @@ function buildChargingStatus(charging) {
 	} else {
 		response += "Your car is on charge.";
 	}
-	
+
 	return response;
 }
 
@@ -57,14 +56,14 @@ function buildConnectedStatus(connected) {
 	} else {
 		response += "Your car is connected to a charger.";
 	}
-	
+
 	return response;
 }
 
 // Handling incoming requests
 exports.handler = (event, context) => {
-		
-	// Helper to return a response with a card.		
+
+	// Helper to return a response with a card.
 	const sendResponse = (title, text) => {
 		context.succeed(buildResponse(text, {
 			"type": "Simple",
@@ -104,7 +103,7 @@ exports.handler = (event, context) => {
 		const helpCallback = () => context.succeed(buildResponse("What would you like to do? You can preheat the car or ask for battery status.", null, false));
 		const loginFailureCallback = () => sendResponse("Authorisation Failure", "Unable to login to Nissan Services, please check your login credentials.");
 
-		// Handle launches without intents by just asking what to do.		
+		// Handle launches without intents by just asking what to do.
 		if (event.request.type === "LaunchRequest") {
 			helpCallback();
 		} else if (event.request.type === "IntentRequest") {
@@ -112,56 +111,56 @@ exports.handler = (event, context) => {
 			switch (event.request.intent.name) {
 				case "PreheatIntent":
 					car.sendPreheatCommand(
-						response => sendResponse("Car Preheat", "The car is warming up for you."),
-						() => sendResponse("Car Preheat", "I can't communicate with the car at the moment.")
+						response => sendResponse("Auto vorheizen", "Alles klar. Deine Karre wird nun vorgeheizt."),
+						() => sendResponse("Auto vorheizen", "I can't communicate with the car at the moment.")
 					);
 					break;
 				case "CoolingIntent":
 					car.sendCoolingCommand(
-						response => sendResponse("Car Cooling", "The car is cooling down for you."),
-						() => sendResponse("Car Cooling", "I can't communicate with the car at the moment.")
+						response => sendResponse("Auto Cooling", "Dein Auto wird jetzt gekühlt."),
+						() => sendResponse("Auto Cooling", "I can't communicate with the car at the moment.")
 					);
 					break;
 				case "ClimateControlOffIntent":
 					car.sendClimateControlOffCommand(
-						response => sendResponse("Climate Control Off", "The cars climate control is off."),
-						() => sendResponse("Climate Control Off", "I can't communicate with the car at the moment.")
+						response => sendResponse("Auto Klimaanlage aus", "Die Klimaanlage wurde ausgeschaltet."),
+						() => sendResponse("Auto Klimaanlage aus", "I can't communicate with the car at the moment.")
 					);
 					break;
 				case "StartChargingIntent":
 					car.sendStartChargingCommand(
-						response => sendResponse("Start Charging Now", "The car is now charging for you."),
-						() => sendResponse("Start Charging Now", "I can't communicate with the car at the moment.")
+						response => sendResponse("Ladevorgang starten", "Das Auto lädt nun."),
+						() => sendResponse("Ladevorgang starten", "I can't communicate with the car at the moment.")
 					);
 					break;
 				case "UpdateIntent":
 					car.sendUpdateCommand(
-						response => sendResponse("Car Update", "I'm downloading the latest data for you."),
-						() => sendResponse("Car Update", "I can't communicate with the car at the moment.")
+						response => sendResponse("Daten aktualisieren", "Autodaten werden jetzt aktualisiert."),
+						() => sendResponse("Daten aktualisieren", "I can't communicate with the car at the moment.")
 					);
 					break;
 				case "RangeIntent":
 					car.getBatteryStatus(
-						response => sendResponse("Car Range Status", buildBatteryStatus(response)),
-						() => sendResponse("Car Range Status", "Unable to get car battery status.")
+						response => sendResponse("Reichweiten Status", buildBatteryStatus(response)),
+						() => sendResponse("Reichweiten Status", "Unable to get car battery status.")
 					);
 					break;
 				case "ChargeIntent":
 					car.getBatteryStatus(
-						response => sendResponse("Car Battery Status", buildBatteryStatus(response)),
-						() => sendResponse("Car Battery Status", "Unable to get car battery status.")
+						response => sendResponse("Batteriestatus", buildBatteryStatus(response)),
+						() => sendResponse("Batteriestatus", "Unable to get car battery status.")
 					);
 					break;
 				case "ChargingIntent":
 					car.getBatteryStatus(
-						response => sendResponse("Car Charging Status", buildChargingStatus(response)),
-						() => sendResponse("Car Charging Status", "Unable to get car battery status.")
+						response => sendResponse("Auto Ladevorgang", buildChargingStatus(response)),
+						() => sendResponse("Auto Ladevorgang", "Unable to get car battery status.")
 					);
 					break;
 				case "ConnectedIntent":
 					car.getBatteryStatus(
-						response => sendResponse("Car Connected Status", buildConnectedStatus(response)),
-						() => sendResponse("Car Connected Status", "Unable to get car battery status.")
+						response => sendResponse("Auto Verbindungsstatus", buildConnectedStatus(response)),
+						() => sendResponse("Auto Verbindungsstatus", "Unable to get car battery status.")
 					);
 					break;
 				case "AMAZON.HelpIntent":
